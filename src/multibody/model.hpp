@@ -24,6 +24,7 @@
 #include "pinocchio/spatial/force.hpp"
 #include "pinocchio/spatial/motion.hpp"
 #include "pinocchio/spatial/inertia.hpp"
+#include "pinocchio/spatial/ldlt6.hpp"
 #include "pinocchio/multibody/fwd.hpp"
 #include "pinocchio/multibody/frame.hpp"
 #include "pinocchio/multibody/joint/joint.hpp"
@@ -402,6 +403,9 @@ namespace se3
     /// \brief Inertia matrix of the subtree expressed as dense matrix [ABA]
     container::aligned_vector<Inertia::Matrix6> Yaba;
     
+    container::aligned_vector<LDLT6> sqrY;
+    
+
     /// \brief Intermediate quantity corresponding to apparent torque [ABA]
     Eigen::VectorXd u;                  // Joint Inertia
     

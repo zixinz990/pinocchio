@@ -142,6 +142,7 @@ SET(${PROJECT_NAME}_SPATIAL_HEADERS
   spatial/skew.hpp
   spatial/act-on-set.hpp
   spatial/explog.hpp
+  spatial/ldlt6.hpp
   )
 
 SET(${PROJECT_NAME}_MULTIBODY_JOINT_HEADERS
@@ -177,6 +178,9 @@ SET(${PROJECT_NAME}_MULTIBODY_HEADERS
 SET(${PROJECT_NAME}_ALGORITHM_HEADERS
   algorithm/aba.hpp
   algorithm/aba.hxx
+  algorithm/sqraba.hpp
+  algorithm/sqraba.hxx
+  algorithm/sqraba-utils.hxx
   algorithm/rnea.hpp
   algorithm/rnea.hxx
   algorithm/crba.hpp
