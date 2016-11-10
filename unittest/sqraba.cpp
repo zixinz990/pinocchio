@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
   se3::container::aligned_vector<     LDLTx6 > sMs(NBT);  
   se3::container::aligned_vector<     Vector6> xs(NBT);  
   se3::container::aligned_vector<     Vector6> ys(NBT);  
-
+  
   for(int i=0;i<NBT;++i)
     {
       Ys[i] = se3::Inertia::Random();
@@ -149,6 +149,11 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       xs[i] = Vector6::Random();
       ys[i] = Vector6::Random();
     }
+
+  double force  = 0.0;
+  int    sample = int(Ms[55](0,0)/10*NBT);
+  std::cout << "*** SAMPLE = " << sample << std::endl;
+
   
   std::cout << "Measuring tailored LDLT = \t";
   timer.tic();
@@ -157,6 +162,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       sYs[_smooth].fromInertia(Ys[_smooth]);
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  sYs[sample].L(1,0) << std::endl;
 
   std::cout << "Measuring Eigen LDLT = \t\t";
   timer.tic();
@@ -165,6 +171,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       sMs[_smooth].compute(Ms[_smooth]);
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  sMs[sample].matrixL()(1,0) << std::endl;
 
   //std::cout << std::endl << std::endl << Matrix6(sYs[40].matrixL()) << std::endl;
   //std::cout << std::endl << std::endl << Matrix6(sMs[40].matrixL()) << std::endl;
@@ -177,6 +184,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       ys[_smooth] = sYs[_smooth].L * xs[_smooth];
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ys[sample][1] << std::endl;
 
   std::cout << "Measuring sparse L1 product = \t";
   timer.tic();
@@ -185,6 +193,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       ys[_smooth] = sYs[_smooth].matrixL() * xs[_smooth];
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ys[sample][1] << std::endl;
 
   std::cout << "Measuring tailored L product = \t";
   timer.tic();
@@ -193,6 +202,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       L_times_x( sYs[_smooth].L, xs[_smooth], ys[_smooth]);
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ys[sample][1] << std::endl;
 
   std::cout << std::endl;
   std::cout << "Measuring Dense U product = \t";
@@ -202,6 +212,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       ys[_smooth] = sYs[_smooth].L.transpose() * xs[_smooth];
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ys[sample][1] << std::endl;
 
   std::cout << "Measuring sparse U1 product = \t";
   timer.tic();
@@ -210,6 +221,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       ys[_smooth] = sYs[_smooth].matrixU() * xs[_smooth];
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ys[sample][1] << std::endl;
 
   std::cout << "Measuring tailored U1 product = ";
   timer.tic();
@@ -218,6 +230,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       U_times_x(sYs[_smooth].L,xs[_smooth],ys[_smooth]);
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ys[sample][1] << std::endl;
 
   std::cout << std::endl;
   std::cout << "Measuring Sparse D product = \t";
@@ -227,6 +240,7 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       ys[_smooth] = sYs[_smooth].matrixD() * xs[_smooth];
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ys[sample][1] << std::endl;
 
   std::cout << "Measuring tailored D product = \t";
   timer.tic();
@@ -235,6 +249,42 @@ BOOST_AUTO_TEST_CASE( test_perf_ldlt )
       D_times_x(sYs[_smooth].D,xs[_smooth],ys[_smooth]);
     }
   timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ys[sample][1] << std::endl;
+
+  /* --- CHOL 3 --- */
+  typedef Eigen::Matrix3d Matrix3;
+  typedef Eigen::Vector3d Vector3;
+  typedef Eigen::LDLT<Matrix3> LDLT3;
+
+  se3::container::aligned_vector<se3::Symmetric3> S3(NBT);  
+  se3::container::aligned_vector<     Matrix3   > L3(NBT);  
+  se3::container::aligned_vector<     Vector3   > D3(NBT);  
+  se3::container::aligned_vector<     LDLT3     > ldlt3(NBT);  
+  se3::container::aligned_vector<     Matrix3   > M3(NBT);  
+  for(int i=0;i<NBT;++i)
+    {
+      S3[i] = se3::Symmetric3::Random();
+      M3[i] = S3[i].matrix();
+    }
+
+  std::cout << std::endl;
+  std::cout << "Measuring tailored chol 3 = \t";
+  timer.tic();
+  SMOOTH(NBT)
+    {
+      se3::LDLT6::chol3(S3[_smooth],L3[_smooth],D3[_smooth]);
+    }
+  timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  D3[sample][1] << std::endl;
+
+  std::cout << "Measuring eigen chol 3 = \t";
+  timer.tic();
+  SMOOTH(NBT)
+    {
+      ldlt3[_smooth].compute( M3[_smooth]);
+    }
+  timer.toc(std::cout,NBT);
+  std::cout << "\t\t\t\t\t\t\tForce check" <<  ldlt3[sample].matrixL()(1,0) << std::endl;
 
 }
 
